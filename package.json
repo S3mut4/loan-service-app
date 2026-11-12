@@ -1,10 +1,18 @@
 {
-  "name": "${PROJECT_NAME}",
+  "name": "loan-service-app",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "prettier:format": "prettier --write \"tests/**/*.{ts,json,md}\"",
+    "prettier:check": "prettier --check \"tests/**/*.{ts,json,md}\""
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2"
+  }
 }

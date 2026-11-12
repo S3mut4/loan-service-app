@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es2016",
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "module": "nodenext",
+    "target": "esnext",
+    "types": ["node"],
     "strict": true,
-    "skipLibCheck": true,
-    "outDir": "dist"
+    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+//    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": false,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["tests", "playwright.config.ts"]
 }
