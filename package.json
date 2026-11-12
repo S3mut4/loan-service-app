@@ -5,13 +5,14 @@
   "scripts": {
     "test": "playwright test",
     "typecheck": "tsc --noEmit",
-    "prettier:format": "prettier --write \"tests/**/*.{ts,json,md}\"",
-    "prettier:check": "prettier --check \"tests/**/*.{ts,json,md}\""
+    "prettier:format": "prettier --write \"{tests,config}/**/*.{ts,json,md}\"",
+    "prettier:check": "prettier --check \"{tests,config}/**/*.{ts,json,md}\""
   },
   "private": true,
   "devDependencies": {
     "@playwright/test": "^1.65.0",
     "@types/node": "^26.6.6",
+    "dotenv": "^18.0.10",
     "prettier": "^3.9.10",
     "typescript": "^7.0.2"
   }
