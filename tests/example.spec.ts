@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
-
-const SMALL_LOAN_URL = "https://loan-decision.tl-academy.ee/small-loan";
+import { SMALL_LOAN_URL, USERNAME, PASSWORD } from "../config/env-data";
 
 test("app has default state", async ({ page }) => {
   await page.goto(SMALL_LOAN_URL);
@@ -49,4 +48,34 @@ test("login popup has default state", async ({ page }) => {
   await page.getByTestId("login-popup-tab-smart-id").click();
   await expect(page.getByTestId("login-popup-personal-code-input")).toBeVisible();
   await expect(page.getByTestId("login-popup-continue-button")).toBeDisabled();
+});
+
+test("full flow: loan details > income > decision", async ({ page }) => {
+  await page.goto(SMALL_LOAN_URL);
+
+  // calculator
+  await page.getByTestId("id-small-loan-calculator-field-amount").fill("6000");
+  await page.getByTestId("ib-small-loan-calculator-field-period").selectOption("24");
+  await page.getByTestId("id-small-loan-calculator-field-calculate").click();
+  await page.getByTestId("id-small-loan-calculator-field-apply").click();
+
+  // login
+  await page.getByTestId("login-popup-username-input").fill(USERNAME);
+  await page.getByTestId("login-popup-password-input").fill(PASSWORD);
+  await page.getByTestId("login-popup-continue-button").click();
+
+  // loan details: values come from the calculator
+  await expect(page.getByTestId("final-page-amount")).toHaveText("6000 €");
+  await expect(page.getByTestId("final-page-monthly-payment")).toHaveText(/^\d+(\.\d+)? €$/);
+  await expect(page.getByTestId("final-page-period")).toHaveText("24 months");
+  await page.getByTestId("final-page-continue-button").click();
+
+  // income
+  await expect(page.getByTestId("income-page-submit-button")).toBeDisabled();
+  await page.getByTestId("income-page-input").fill("6000");
+  await expect(page.getByTestId("income-page-submit-button")).toBeEnabled();
+  await page.getByTestId("income-page-submit-button").click();
+
+  // decision
+  await expect(page.getByTestId("decision-page-ok-button")).toBeVisible();
 });
