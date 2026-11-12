@@ -12,5 +12,5 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["tests", "playwright.config.ts"]
+  "include": ["tests", "config", "playwright.config.ts"]
 }
