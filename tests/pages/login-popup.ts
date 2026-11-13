@@ -5,6 +5,7 @@ export class LoginPopup {
   readonly page: Page;
   readonly usernameField: Locator;
   readonly passwordField: Locator;
+  readonly passwordError: Locator;
   readonly continueButton: Locator;
   readonly smartIdTab: Locator;
   readonly personalCodeField: Locator;
@@ -13,6 +14,7 @@ export class LoginPopup {
     this.page = page;
     this.usernameField = page.getByTestId("login-popup-username-input");
     this.passwordField = page.getByTestId("login-popup-password-input");
+    this.passwordError = page.getByTestId("login-popup-password-error");
     this.continueButton = page.getByTestId("login-popup-continue-button");
     this.smartIdTab = page.getByTestId("login-popup-tab-smart-id");
     this.personalCodeField = page.getByTestId("login-popup-personal-code-input");
