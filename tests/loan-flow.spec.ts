@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { SmallLoanPage } from "./pages/small-loan-page";
 import { IncomePage } from "./pages/income-page";
-import { mockDecision, mockDecisionError } from "./mocks/loan-api";
+import { mockDecision, mockDecisionError, tamperDecisionPayment } from "./mocks/loan-api";
 import { USERNAME, PASSWORD, SMART_ID_BLACKLISTED_CODE } from "../config/env-data";
 
 let smallLoanPage: SmallLoanPage;
@@ -12,9 +12,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 // path to the income page for tests that focus on the decision
-async function goToIncomePage(): Promise<IncomePage> {
-  await smallLoanPage.fillAmount(6000);
-  await smallLoanPage.selectPeriod(24);
+async function goToIncomePage(amount = 6000, period = 24): Promise<IncomePage> {
+  await smallLoanPage.fillAmount(amount);
+  await smallLoanPage.selectPeriod(period);
   await smallLoanPage.calculate();
   const loginPopup = await smallLoanPage.apply();
   const loanDetailsPage = await loginPopup.signIn(USERNAME, PASSWORD);
@@ -107,5 +107,57 @@ test.describe("decision with mocked backend", () => {
     await decisionPage.retry();
 
     await expect(decisionPage.title).toHaveText("Loan approved!");
+  });
+});
+
+test.describe("income validation", () => {
+  for (const { description, input } of [
+    { description: "letters", input: "abc" },
+    { description: "zero", input: "0" },
+  ]) {
+    test(`income with ${description} > get decision disabled`, async () => {
+      const incomePage = await goToIncomePage();
+
+      await incomePage.incomeField.fill(input);
+
+      await expect(incomePage.getDecisionButton).toBeDisabled();
+    });
+  }
+
+  test("decimal income > value is not multiplied by 100", async () => {
+    test.fail(true, "BUG-01: the decimal separator is removed, so 1500.50 becomes 150050");
+    const incomePage = await goToIncomePage();
+
+    await incomePage.incomeField.fill("1500.50");
+
+    // accepted as 1500.5 or truncated to 1500, but never 150050
+    await expect(incomePage.incomeField).toHaveValue(/^1500([.,]50?)?$/);
+  });
+});
+
+test.describe("decision request tampering (security)", () => {
+  // high monthly payment against a low income: the real backend declines it
+  const amount = 10000;
+  const period = 12;
+  const income = 1000;
+
+  test("real request > loan declined", async () => {
+    const incomePage = await goToIncomePage(amount, period);
+    await incomePage.fillIncome(income);
+
+    const decisionPage = await incomePage.getDecision();
+
+    await expect(decisionPage.title).toHaveText("Loan declined");
+  });
+
+  test("monthly payment lowered in the request > still declined", async ({ page }) => {
+    test.fail(true, "BUG-02: the backend trusts the monthlyPayment sent by the client");
+    await tamperDecisionPayment(page, 10);
+    const incomePage = await goToIncomePage(amount, period);
+    await incomePage.fillIncome(income);
+
+    const decisionPage = await incomePage.getDecision();
+
+    await expect(decisionPage.title).toHaveText("Loan declined");
   });
 });

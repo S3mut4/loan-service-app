@@ -47,6 +47,46 @@ test("click middle of amount slider > amount greater than default", async () => 
     .toBeGreaterThan(500);
 });
 
+for (const amount of [500, 10000]) {
+  test(`valid amount ${amount} > monthly payment shown, apply enabled`, async () => {
+    await smallLoanPage.fillAmount(amount);
+    await smallLoanPage.calculate();
+
+    await expect(smallLoanPage.monthlyPayment).toHaveText(/^\d+(\.\d+)? €$/);
+    await expect(smallLoanPage.applyButton).toBeEnabled();
+  });
+}
+
+for (const amount of [499, 10001]) {
+  test(`invalid amount ${amount} > error shown, apply disabled`, async () => {
+    await smallLoanPage.fillAmount(amount);
+    await smallLoanPage.calculate();
+
+    await expect(smallLoanPage.calculationError).toBeVisible();
+    await expect(smallLoanPage.applyButton).toBeDisabled();
+  });
+}
+
+test("change amount after calculating > payment cleared, apply disabled", async () => {
+  await smallLoanPage.calculate();
+  await expect(smallLoanPage.applyButton).toBeEnabled();
+
+  await smallLoanPage.fillAmount(2000);
+
+  await expect(smallLoanPage.monthlyPayment).toHaveText("");
+  await expect(smallLoanPage.applyButton).toBeDisabled();
+});
+
+test("change period after calculating > payment cleared, apply disabled", async () => {
+  await smallLoanPage.calculate();
+  await expect(smallLoanPage.applyButton).toBeEnabled();
+
+  await smallLoanPage.selectPeriod(24);
+
+  await expect(smallLoanPage.monthlyPayment).toHaveText("");
+  await expect(smallLoanPage.applyButton).toBeDisabled();
+});
+
 test.describe("mocked backend", () => {
   test("calculate > mocked monthly payment is shown", async ({ page }) => {
     await mockLoanCalc(page, 34.56);

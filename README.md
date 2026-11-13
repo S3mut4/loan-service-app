@@ -86,7 +86,12 @@ tests/
     loan-api.ts            # mocked responses for /api/loan-calc and /api/decisions
   calculator.spec.ts       # calculator: default state, request, slider, mocked responses
   login.spec.ts            # login popup
-  loan-flow.spec.ts        # end-to-end flow and mocked decisions
+  loan-flow.spec.ts        # end-to-end flow, mocked decisions, income validation, request tampering
+  access.spec.ts           # later steps cannot be opened without login
+  api/
+    loan-calc-api.spec.ts  # API tests for /api/loan-calc against the Swagger contract
+docs/
+  checklist.md             # checklist per screen, test cases and bug reports
 ```
 
 ## Page Object Model
@@ -118,18 +123,26 @@ Mocks replace a backend response with a fixed one, so the tests can check UI sta
 | ---------- | ------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | calculator | Default state                         | Amount 500, period 12, Calculate enabled, Apply Now disabled.                                    |
 | calculator | Image button                          | The image button scrolls the page back to the calculator.                                        |
+| calculator | Amount boundaries                     | 500 and 10000 return a payment; 499 and 10001 show an error and keep Apply Now disabled.         |
+| calculator | Values changed after calculating      | Changing amount or period clears the payment and disables Apply Now.                             |
 | calculator | Calculate request                     | Calculate sends the amount and period in the request and enables Apply Now.                      |
 | calculator | Amount slider                         | Clicking the middle of the slider increases the amount above the default.                        |
 | calculator | Mocked monthly payment                | The monthly payment returned by the backend is shown.                                            |
 | calculator | Calculation server error (mocked 500) | A generic error is shown, internal details are not exposed, Apply Now stays disabled.            |
 | login      | Popup default state                   | Username/password fields visible, Smart-ID tab shows the personal code field, Continue disabled. |
+| login      | Wrong credentials                     | Wrong username, password or both show the same generic error.                                    |
 | login      | Smart-ID login                        | A valid Smart-ID code reaches Loan Details with the calculator values.                           |
+| login      | Wrong credentials                     | Wrong username, password or both show the same generic error.                                    |
 | loan-flow  | Full flow with real backend           | Calculator → login → loan details → income → loan approved.                                      |
 | loan-flow  | Blacklisted Smart-ID (real backend)   | The blacklisted code is declined even with a high income.                                        |
 | loan-flow  | Negative decision (mocked)            | The income is sent in the request; "Loan declined" and the declined icon are shown.              |
 | loan-flow  | Positive decision (mocked)            | "Loan approved!" and the approved icon are shown.                                                |
 | loan-flow  | Decision server error (mocked 500)    | A generic error and the Try again button are shown; internal details are not exposed.            |
 | loan-flow  | Retry after server error              | The first request fails, Try again reaches the real backend and the decision is shown.           |
+| loan-flow  | Income validation                     | Letters and zero keep Get decision disabled; decimals are not multiplied by 100 (BUG-01).        |
+| loan-flow  | Request tampering                     | A lowered `monthlyPayment` in the decision request must not change the decision (BUG-02).        |
+| access     | Direct URLs                           | `/loan-decision`, `/income` and `/decision` without login go back to the calculator.             |
+| api        | `/api/loan-calc` contract             | 200 for valid input; 400 for out-of-range amount or period; error body (FIND-02).                |
 
 ## Continuous Integration
 
@@ -153,6 +166,13 @@ In CI there is no `env/dev.env` file. The variables come from repository secrets
 - `TEST_SMART_ID_BLACKLISTED_CODE`
 
 ## Known issues
+
+Known bugs are covered by tests marked with `test.fail()`: the suite stays green while the bug exists and the test fails as soon as the bug is fixed, as a reminder to remove the mark. Full reports are in [`docs/checklist.md`](docs/checklist.md).
+
+- **BUG-01**: a decimal income (`1500.50`) is turned into `150050`.
+- **BUG-02**: the decision API trusts the `monthlyPayment` sent by the client.
+- **FIND-01**: the decision endpoint used by the UI is not documented in Swagger.
+- **FIND-02**: `/api/loan-calc` returns 400 with an empty body instead of the documented error message.
 
 - The period dropdown uses the test id `ib-small-loan-calculator-field-period`, while every other calculator element uses the `id-` prefix. It is probably a typo in the application; the tests use the id as it is.
 
