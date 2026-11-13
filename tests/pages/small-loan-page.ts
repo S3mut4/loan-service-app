@@ -6,17 +6,23 @@ export class SmallLoanPage {
   readonly page: Page;
   readonly url: string = SMALL_LOAN_URL;
   readonly amountField: Locator;
+  readonly amountSlider: Locator;
   readonly periodSelect: Locator;
   readonly calculateButton: Locator;
+  readonly monthlyPayment: Locator;
+  readonly calculationError: Locator;
   readonly applyButton: Locator;
   readonly imageButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.amountField = page.getByTestId("id-small-loan-calculator-field-amount");
-    // the app uses "ib-" instead of "id-" for this test id
+    this.amountSlider = page.getByTestId("id-small-loan-calculator-field-amount-slider");
+    // the app uses "ib-" instead of "id-" for these test ids
     this.periodSelect = page.getByTestId("ib-small-loan-calculator-field-period");
+    this.monthlyPayment = page.getByTestId("ib-small-loan-calculator-field-monthlyPayment");
     this.calculateButton = page.getByTestId("id-small-loan-calculator-field-calculate");
+    this.calculationError = page.getByTestId("id-small-loan-calculator-field-error");
     this.applyButton = page.getByTestId("id-small-loan-calculator-field-apply");
     this.imageButton = page.getByTestId("id-image-element-button-image-1");
   }
@@ -27,6 +33,11 @@ export class SmallLoanPage {
 
   async fillAmount(amount: number) {
     await this.amountField.fill(String(amount));
+  }
+
+  async clickAmountSliderCenter() {
+    // locator.click() targets the center, scrolls into view and waits for actionability
+    await this.amountSlider.click();
   }
 
   async selectPeriod(months: number) {

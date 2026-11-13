@@ -7,6 +7,7 @@ The project is intended for learning and practicing:
 - The Page Object Model (POM): one class per screen, holding its locators and actions.
 - Writing End-to-End (E2E) tests for a multi-step flow.
 - Waiting for network requests triggered by UI actions.
+- Mocking backend responses to test states the real backend cannot produce on demand.
 - Managing credentials with env files and GitHub Actions secrets.
 
 ## Configuration Instructions
@@ -60,12 +61,12 @@ npx playwright show-report # open the last HTML report
 
 ## Scripts
 
-| Script | Description |
-|---|---|
-| `npm test` | Runs the Playwright tests. |
-| `npm run typecheck` | Checks TypeScript types without emitting files. |
-| `npm run prettier:format` | Formats the code with Prettier. |
-| `npm run prettier:check` | Checks formatting without changing files. |
+| Script                    | Description                                     |
+| ------------------------- | ----------------------------------------------- |
+| `npm test`                | Runs the Playwright tests.                      |
+| `npm run typecheck`       | Checks TypeScript types without emitting files. |
+| `npm run prettier:format` | Formats the code with Prettier.                 |
+| `npm run prettier:check`  | Checks formatting without changing files.       |
 
 ## Project structure
 
@@ -81,7 +82,11 @@ tests/
     loan-details-page.ts   # loan summary after login
     income-page.ts         # monthly income form
     decision-page.ts       # loan decision
-  small-loan-pom.spec.ts   # tests using the page objects
+  mocks/
+    loan-api.ts            # mocked responses for /api/loan-calc and /api/decisions
+  calculator.spec.ts       # calculator: default state, request, slider, mocked responses
+  login.spec.ts            # login popup
+  loan-flow.spec.ts        # end-to-end flow and mocked decisions
 ```
 
 ## Page Object Model
@@ -97,14 +102,34 @@ const incomePage = await loanDetailsPage.continue();
 const decisionPage = await incomePage.getDecision();
 ```
 
+## Mocks
+
+Mocks replace a backend response with a fixed one, so the tests can check UI states that the real backend cannot produce on demand (a declined loan, a server error).
+
+- Mocks live in `tests/mocks/`, not in the page objects: a page object models a screen, a mock models the backend.
+- A mock is registered **before** the action that sends the request.
+- Mocked responses keep the shape of the real API response.
+- Error mocks include fake internal details (a stack trace line) and the tests check that the UI does **not** show them.
+- A mocked test only checks what the mock controls. The real flow is covered once by the end-to-end test.
+
 ## Test coverage
 
-| Test                                        | What it checks                                                                                                  |
-|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
-| App has default state                       | Calculate is enabled and Apply Now is disabled on page load.                                                    |
-| Image button scrolls back to the calculator | The calculator is out of view after scrolling down, and back in view after clicking the image button.           |
-| Login popup has default state               | Username/password fields are visible, Continue is disabled, and the Smart-ID tab shows the personal code field. |
-| Full flow                                   | Calculator → login → loan details (amount, payment, period) → income → positive decision.                       |
+| Spec       | Test                                  | What it checks                                                                                   |
+| ---------- | ------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| calculator | Default state                         | Amount 500, period 12, Calculate enabled, Apply Now disabled.                                    |
+| calculator | Image button                          | The image button scrolls the page back to the calculator.                                        |
+| calculator | Calculate request                     | Calculate sends the amount and period in the request and enables Apply Now.                      |
+| calculator | Amount slider                         | Clicking the middle of the slider increases the amount above the default.                        |
+| calculator | Mocked monthly payment                | The monthly payment returned by the backend is shown.                                            |
+| calculator | Calculation server error (mocked 500) | A generic error is shown, internal details are not exposed, Apply Now stays disabled.            |
+| login      | Popup default state                   | Username/password fields visible, Smart-ID tab shows the personal code field, Continue disabled. |
+| login      | Smart-ID login                        | A valid Smart-ID code reaches Loan Details with the calculator values.                           |
+| loan-flow  | Full flow with real backend           | Calculator → login → loan details → income → loan approved.                                      |
+| loan-flow  | Blacklisted Smart-ID (real backend)   | The blacklisted code is declined even with a high income.                                        |
+| loan-flow  | Negative decision (mocked)            | The income is sent in the request; "Loan declined" and the declined icon are shown.              |
+| loan-flow  | Positive decision (mocked)            | "Loan approved!" and the approved icon are shown.                                                |
+| loan-flow  | Decision server error (mocked 500)    | A generic error and the Try again button are shown; internal details are not exposed.            |
+| loan-flow  | Retry after server error              | The first request fails, Try again reaches the real backend and the decision is shown.           |
 
 ## Continuous Integration
 
