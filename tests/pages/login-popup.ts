@@ -28,4 +28,11 @@ export class LoginPopup {
     await this.continueButton.click();
     return new LoanDetailsPage(this.page);
   }
+
+  async signInWithSmartId(personalCode: string) {
+    await this.selectSmartIdTab();
+    await this.personalCodeField.fill(personalCode);
+    await this.continueButton.click();
+    return new LoanDetailsPage(this.page);
+  }
 }
