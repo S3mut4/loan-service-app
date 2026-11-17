@@ -53,3 +53,13 @@ export async function mockDecisionError(page: Page, status: number, times?: numb
     { times },
   );
 }
+
+// lets the real request through, but changes the monthly payment sent by the client
+export async function tamperDecisionPayment(page: Page, monthlyPayment: number) {
+  await page.route(isDecisions, (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+
+    const body = route.request().postDataJSON();
+    return route.continue({ postData: JSON.stringify({ ...body, monthlyPayment }) });
+  });
+}
