@@ -47,6 +47,25 @@ test("click middle of amount slider > amount greater than default", async () => 
     .toBeGreaterThan(500);
 });
 
+test("period dropdown > offers 12 to 36 in steps of 4", async () => {
+  await expect(smallLoanPage.periodSelect.locator("option")).toHaveText([
+    "12",
+    "16",
+    "20",
+    "24",
+    "28",
+    "32",
+    "36",
+  ]);
+});
+
+test("select each period > slider follows the dropdown", async () => {
+  for (const period of [12, 16, 20, 24, 28, 32, 36]) {
+    await smallLoanPage.selectPeriod(period);
+    await expect(smallLoanPage.periodSlider).toHaveValue(String(period));
+  }
+});
+
 for (const amount of [500, 10000]) {
   test(`valid amount ${amount} > monthly payment shown, apply enabled`, async () => {
     await smallLoanPage.fillAmount(amount);

@@ -124,6 +124,8 @@ Mocks replace a backend response with a fixed one, so the tests can check UI sta
 | calculator | Default state                         | Amount 500, period 12, Calculate enabled, Apply Now disabled.                                    |
 | calculator | Image button                          | The image button scrolls the page back to the calculator.                                        |
 | calculator | Amount boundaries                     | 500 and 10000 return a payment; 499 and 10001 show an error and keep Apply Now disabled.         |
+| calculator | Period options                        | The dropdown offers exactly 12, 16, 20, 24, 28, 32 and 36.                                       |
+| calculator | Period dropdown and slider            | Selecting each period moves the slider to the same value.                                        |
 | calculator | Values changed after calculating      | Changing amount or period clears the payment and disables Apply Now.                             |
 | calculator | Calculate request                     | Calculate sends the amount and period in the request and enables Apply Now.                      |
 | calculator | Amount slider                         | Clicking the middle of the slider increases the amount above the default.                        |

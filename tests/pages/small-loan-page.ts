@@ -8,6 +8,7 @@ export class SmallLoanPage {
   readonly amountField: Locator;
   readonly amountSlider: Locator;
   readonly periodSelect: Locator;
+  readonly periodSlider: Locator;
   readonly calculateButton: Locator;
   readonly monthlyPayment: Locator;
   readonly calculationError: Locator;
@@ -20,6 +21,7 @@ export class SmallLoanPage {
     this.amountSlider = page.getByTestId("id-small-loan-calculator-field-amount-slider");
     // the app uses "ib-" instead of "id-" for these test ids
     this.periodSelect = page.getByTestId("ib-small-loan-calculator-field-period");
+    this.periodSlider = page.getByTestId("ib-small-loan-calculator-field-period-slider");
     this.monthlyPayment = page.getByTestId("ib-small-loan-calculator-field-monthlyPayment");
     this.calculateButton = page.getByTestId("id-small-loan-calculator-field-calculate");
     this.calculationError = page.getByTestId("id-small-loan-calculator-field-error");
