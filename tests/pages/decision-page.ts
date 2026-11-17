@@ -1,4 +1,5 @@
 import { Locator, Page } from "@playwright/test";
+import { SmallLoanPage } from "./small-loan-page";
 
 export class DecisionPage {
   readonly page: Page;
@@ -24,5 +25,10 @@ export class DecisionPage {
 
   async retry() {
     await this.retryButton.click();
+  }
+
+  async ok() {
+    await this.okButton.click();
+    return new SmallLoanPage(this.page);
   }
 }
