@@ -44,3 +44,15 @@ for (const { description, username, password } of wrongCredentials) {
     await expect(loanDetailsPage.amount).not.toBeVisible();
   });
 }
+
+test("username with digits > format error shown, continue disabled", async ({ smallLoanPage }) => {
+  await smallLoanPage.calculate();
+  const loginPopup = await smallLoanPage.apply();
+
+  await loginPopup.usernameField.fill("123");
+
+  await expect(loginPopup.usernameError).toHaveText(
+    "Username can only contain letters, spaces, hyphens and apostrophes",
+  );
+  await expect(loginPopup.continueButton).toBeDisabled();
+});

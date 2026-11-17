@@ -56,6 +56,32 @@ test("blacklisted smart id > loan declined even with high income", async ({ smal
   await expect(decisionPage.declinedIcon).toBeVisible();
 });
 
+test.describe("navigation", () => {
+  test("back from loan details > calculator keeps its state, apply enabled", async ({
+    loanDetailsPage,
+  }) => {
+    const smallLoanPage = await loanDetailsPage.back();
+
+    await expect(smallLoanPage.applyButton).toBeEnabled();
+  });
+
+  test("back from income > loan details shown", async ({ incomePage }) => {
+    const loanDetailsPage = await incomePage.back();
+
+    await expect(loanDetailsPage.continueButton).toBeVisible();
+  });
+
+  test("ok on decision > calculator in initial state, apply disabled", async ({ incomePage }) => {
+    await incomePage.fillIncome(6000);
+    const decisionPage = await incomePage.getDecision();
+
+    const smallLoanPage = await decisionPage.ok();
+
+    await expect(smallLoanPage.calculateButton).toBeVisible();
+    await expect(smallLoanPage.applyButton).toBeDisabled();
+  });
+});
+
 test.describe("decision with mocked backend", () => {
   test("positive decision > loan approved is shown", async ({ page, incomePage }) => {
     await mockDecision(page, { approved: true });
