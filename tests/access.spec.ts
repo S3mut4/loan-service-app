@@ -1,8 +1,9 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { SmallLoanPage } from "./pages/small-loan-page";
 import { SMALL_LOAN_URL } from "../config/env-data";
 
 // later steps of the flow must not open without login
+// no smallLoanPage fixture here: it would open the calculator first
 for (const path of ["/loan-decision", "/income", "/decision"]) {
   test(`open ${path} without login > back on the calculator`, async ({ page }) => {
     const smallLoanPage = new SmallLoanPage(page);
